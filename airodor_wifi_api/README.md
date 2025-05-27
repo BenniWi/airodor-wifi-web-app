@@ -23,10 +23,10 @@ General address to contact
 
 ```http://<ip-address>/msg?Function=<action><group><mode>```
 
-mode is only relevant in case somethin is "written" (set)
+mode is only relevant in case something is "written" (set)
 
 ```
-action = [R, W, T, S] 
+action = [R, W, T, S, M] 
 where:
   R = READ MODE 
   W = SET MODE 
@@ -54,6 +54,7 @@ mode:
     0 = Off 
     1 = min - alternating 
     2 = med - alternating
+    3 = med - alternating (do not use, see reading status)
     4 = max - alternating 
     8 = med - permanent one direction
     16 = max - permanent one direction
@@ -64,11 +65,13 @@ mode:
     0 = Off 
     1 = min - alternating 
     2 = med - alternating
+    3 = med - alternating (Forced because of invalid input. E.g. hard wire is set to alternat-med and we tried to set alternate-min)
     6 = max - alternating 
     10 = med - permanent one direction
     18 = max - permanent one direction
     34 = med - permanent only to inside
     66 = max - permanent only to inside
+    130 = off - with airodor-wifi timer activated
 ```
 
 right after setting a new mode, the returned mode is the "set" mode value. 
@@ -78,11 +81,11 @@ After some seconds the mode switches to the "read" mode values
   timer modes: (timers are only usable to turn the ventilation off, not for other modes)
     0 = off 
     1..12 = hours 
- ```
+```
 ```
 answers: 
-  R -> value = R<group><mode> 
-  W -> success = M<group>OK 
+  R -> value = R<group><mode> e.g. RA2 for Reading Group A is Mode 2
+  W -> success = M<group>OK  e.g. MAOK for setting mode to Group A is OK 
   T -> value = T<group><mode> 
   S -> success = S<group>OK 
 ```

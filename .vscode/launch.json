@@ -1,35 +1,26 @@
 {
+    "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Aktuelle Datei",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "python": "${workspaceFolder}/airodor_web_app/.venv/bin/python3",
-            "console": "integratedTerminal",
-            "justMyCode": false,
-            "env": {
-                "FLASK_DEBUG": "1"
-              }
+        "name": "airodor_web_app (debugpy)",
+        "type": "debugpy",
+        "request": "launch",
+        "python": "${workspaceFolder}/airodor_web_app/.venv/bin/python3",
+        "cwd": "${workspaceFolder}/airodor_web_app",
+        "module": "flask",
+        "env": {
+            "FLASK_APP": "./airodor_web_app/app.py",
+            "FLASK_DEBUG": "1",
+            "VENTILATION_ADDRESS": "192.168.2.122",
+            "SERVER_NAME": "TEST_OG"
         },
-        {
-            "name": "airodor_web_app",
-            "type": "python",
-            "python": "${workspaceFolder}/airodor_web_app/.venv/bin/python3",
-            "cwd": "${workspaceFolder}/airodor_web_app",
-            "request": "launch",
-            "module": "flask",
-            "args": [
-                "--app",
-                "./airodor_web_app/app.py",
-                "run",
-                "--debug",
-                "--host=0.0.0.0"
-            ],
-            "justMyCode": true,
-            "env": {
-                "FLASK_DEBUG": "1"
-              }
+        "args": [
+            "run",
+            "--debug",
+            "--host=0.0.0.0"
+        ],
+        "justMyCode": true,
+        "jinja": true
         }
     ]
 }

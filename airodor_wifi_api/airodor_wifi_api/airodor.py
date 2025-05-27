@@ -50,11 +50,14 @@ class VentilationModeRead(ExtendedEnum):
     OFF = 0
     ALTERNATING_MIN = 1
     ALTERNATING_MED = 2
+    ALTERNATING_MED_FORCED = 3
     ALTERNATING_MAX = 6
     ONE_DIR_MED = 10
     ONE_DIR_MAX = 18
     INSIDE_MED = 34
     INSIDE_MAX = 66
+    TIMED_OFF = 130
+    UNKNOWN = 999
 
 
 class VentilationAnswerType(Enum):
@@ -114,6 +117,8 @@ def get_request_url(
         return URL(f"{url}{action.value}{group.value}{mode.value}")
     if action == VentilationAction.READ_MODE:
         return URL(f"{url}{action.value}{group.value}")
+    if action == VentilationAction.READ_OFF_TIMER:
+        return URL(f"{url}{action.value}{group.value}")
 
     raise NotImplementedError(f"VentilationAction {action} is not yet implemented")
 
@@ -121,7 +126,8 @@ def get_request_url(
 def interpret_answer(answer: requests.Response) -> tuple:
     '''interpret the request answer from the wifi module.
     For READ, the return is (group, mode).
-    For WRITE, the return is (group, OK?)'''
+    For WRITE, the return is (group, OK?)
+    For TIMER_READ, the return is (group, timer_value)'''
     # assert that the answer is valid
     assert answer.ok
     # first character is always answer type
@@ -131,20 +137,38 @@ def interpret_answer(answer: requests.Response) -> tuple:
 
     if vat == VentilationAnswerType.R:
         # for read type, the character 2+ is the ventilation mode
-        try:
-            mode = VentilationModeRead(int(answer.text[2:]))
-        except ValueError:
+        mode_number = int(answer.text[2:])
+        if mode_number in VentilationModeRead:
+            mode = VentilationModeRead(mode_number)
+        elif mode_number in VentilationModeSet:
             # right after setting a mode, the answer is part of the "Set" enum
             # it switches to the "Read" enum after some seconds
-            mode = VentilationModeSet(int(answer.text[2:]))
+            mode = VentilationModeSet(mode_number)
+        else:
+            mode = VentilationModeRead.UNKNOWN
         return group, mode
     if vat == VentilationAnswerType.M:
         # for write type, the character 2+ is the "OK" notifier
         return group, (answer.text[2:] == "OK")
+    if vat == VentilationAnswerType.T:
+        return group, (int(answer.text[2:]))
+
 
     raise NotImplementedError(f"VentilationAnswer for {vat} is not yet implemented")
 
 
+def get_timer(ip_addr: ip_address, group: VentilationGroup) -> VentilationModeRead:
+    '''get the current mode for the given ip and ventilation group'''
+    print(f"getting timer value for group {group} from {ip_addr}")
+    request = get_request_url(ip_addr=ip_addr, action=VentilationAction.READ_OFF_TIMER, group=group)
+    try:
+        r = requests.get(str(request), timeout=10)
+        r_group, timer_value = interpret_answer(r)
+        assert r_group == group  # answer should fit to the request
+        return timer_value
+    except requests.exceptions.Timeout:
+        return None
+    
 def get_mode(ip_addr: ip_address, group: VentilationGroup) -> VentilationModeRead:
     '''get the current mode for the given ip and ventilation group'''
     print(f"getting status for group {group} from {ip_addr}")
