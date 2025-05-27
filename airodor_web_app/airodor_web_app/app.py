@@ -99,15 +99,21 @@ def index():
         threading.Thread(target=backend_thread).start()
         backend_running = True
     now = datetime.now(timezone)
+    timer_val_A = ""
+    timer_val_B = ""
     if do_real_communication:
         vent_mode_A = airodor.get_mode(current_ip, group=airodor.VentilationGroup.A)
         if vent_mode_A:
             add_message_to_queue("Success reading status for group A")
+            if vent_mode_A == airodor.VentilationModeRead.TIMED_OFF:
+                timer_val_A = airodor.get_timer(current_ip, group=airodor.VentilationGroup.A)
         else:
             add_message_to_queue("Error reading status for group A")
         vent_mode_B = airodor.get_mode(current_ip, group=airodor.VentilationGroup.B)
         if vent_mode_B:
             add_message_to_queue("Success reading status for group B")
+            if vent_mode_B == airodor.VentilationModeRead.TIMED_OFF:
+                timer_val_B = airodor.get_timer(current_ip, group=airodor.VentilationGroup.A)
         else:
             add_message_to_queue("Error reading status for group B")
     else:
@@ -120,9 +126,9 @@ def index():
         server_name=server_name,
         ip_address=current_ip,
         ventilation_modes=airodor.VentilationModeSet,
-        status_string_group_A=vent_mode_A.name,
+        status_string_group_A=vent_mode_A.name + (f"→{timer_val_A}h" if timer_val_A else ""),
         status_time_group_A=now.strftime("%X"),
-        status_string_group_B=vent_mode_B.name,
+        status_string_group_B=vent_mode_B.name + (f"→{timer_val_B}h" if timer_val_B else ""),
         status_time_group_B=now.strftime("%X"),
         timer_list_A=timer_dict["A"].create_string_list(),
         timer_list_B=timer_dict["B"].create_string_list(),
