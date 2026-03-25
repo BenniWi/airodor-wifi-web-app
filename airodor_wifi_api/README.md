@@ -2,6 +2,10 @@
 # airodor-wifi
 provide a  api for the airodor wifi module from limot
 
+> **⚠️ This project has moved!**
+> The WiFi API is now developed and maintained in a separate repository:
+> **[BenniWi/airodor-wifi-api](https://github.com/BenniWi/airodor-wifi-api)**
+
 ## install poetry
 
 ```bash
